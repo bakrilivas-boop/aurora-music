@@ -21,8 +21,8 @@
 
 在 [Releases](https://github.com/bakrilivas-boop/aurora-music/releases) 下载：
 
-- `Aurora Music-<版本>-安装包.exe`：适用于 Windows x64，双击安装，可选择安装位置。
-- `Aurora Music-<版本>-绿色版.zip`：解压后运行 `win-unpacked/Aurora Music.exe`，请保留整个目录。
+- `Aurora-Music-<版本>-Setup.exe`：适用于 Windows x64，双击安装，可选择安装位置。
+- `Aurora-Music-<版本>-Portable.zip`：解压后运行 `win-unpacked/Aurora Music.exe`，请保留整个目录。
 - `SHA256.txt`：用于核对文件完整性。
 
 桌面成品自带运行环境，无需另装 Node.js。发布包不包含音乐文件、个人曲库、设置或 API Key。换电脑后需要导入自己的音乐，并按需配置 DeepSeek。
