@@ -15,7 +15,13 @@
     "check": "npm run typecheck && npm test && npm run build",
     "app": "electron .",
     "app:cdp": "electron . --remote-debugging-port=9333",
-    "dist:win": "npm run build && electron-builder --win"
+    "dist:win": "npm run build && electron-builder --win",
+    "dev:android": "vite --config vite.mobile.config.ts --open /mobile.html",
+    "build:android:web": "vite build --config vite.mobile.config.ts && node scripts/mobile-entry.mjs",
+    "sync:android": "npm run build:android:web && cap sync android",
+    "test:android": "node scripts/mobile-regression.mjs",
+    "dist:android": "pwsh -File scripts/build-android.ps1",
+    "verify:android": "node scripts/verify-android.mjs"
   },
   "build": {
     "appId": "com.aurora.music",
@@ -38,7 +44,9 @@
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
       ],
       "artifactName": "${productName}-${version}-安装包.${ext}"
@@ -55,11 +63,15 @@
     }
   },
   "dependencies": {
+    "@capacitor/android": "^8.5.3",
+    "@capacitor/app": "^8.1.2",
+    "@capacitor/core": "^8.5.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "zustand": "^5.0.2"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.5.3",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
     "@vitejs/plugin-react": "^4.3.4",

@@ -7,6 +7,16 @@ archive/
 .tmp/
 shots/
 public/test-music/
+.tools/
+.private/
+dist-mobile/
+android/.gradle/
+android/**/build/
+android/local.properties
+*.jks
+*.keystore
+*.apk
+*.aab
 *.log
 
 # Local music, personal profiles and standalone distribution files

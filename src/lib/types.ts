@@ -26,6 +26,10 @@ export interface Track {
   nativeId?: string
   nativeModified?: number
   nativeUrl?: string
+  /** Android private files survive restarts; runtime URLs are rebuilt on launch. */
+  mobileUri?: string
+  mobileCover?: string
+  mobileLyrics?: string
   /** 时长是否已解析 */
   analyzed?: boolean
 }

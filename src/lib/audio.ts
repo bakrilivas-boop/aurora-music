@@ -269,4 +269,10 @@ class AudioEngine {
   }
 }
 
-export const engine = new AudioEngine()
+export let engine: Pick<AudioEngine, keyof AudioEngine> = new AudioEngine()
+
+/** Android supplies a system media player before the shared store is initialized. */
+export function installPlaybackEngine(nativeEngine: typeof engine): void {
+  engine.clear()
+  engine = nativeEngine
+}

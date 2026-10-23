@@ -33,7 +33,7 @@ export function collectLocalAssets(files: Iterable<File>): { lrcMap: Map<string,
   return { lrcMap, coverMap }
 }
 
-async function readLyrics(file: File): Promise<string | undefined> {
+export async function readLyrics(file: Pick<File, 'arrayBuffer'>): Promise<string | undefined> {
   const bytes = new Uint8Array(await file.arrayBuffer())
   let text: string
   if (bytes[0] === 0xff && bytes[1] === 0xfe) text = new TextDecoder('utf-16le').decode(bytes)

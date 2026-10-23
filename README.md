@@ -4,7 +4,7 @@
 
 面向 Windows 的本地音乐播放器，使用 **Electron + React + TypeScript** 构建，同时保留浏览器版。支持本地曲库、同步歌词、封面补全、歌单管理与 DeepSeek 音乐助手。
 
-[下载 Windows 版](https://github.com/bakrilivas-boop/aurora-music/releases/latest) · [提交问题](https://github.com/bakrilivas-boop/aurora-music/issues) · [MIT License](LICENSE)
+[下载 Windows 版](https://github.com/bakrilivas-boop/aurora-music/releases/tag/v1.6.0) · [Android 预览版](https://github.com/bakrilivas-boop/aurora-music/releases/tag/android-v1.0.0) · [提交问题](https://github.com/bakrilivas-boop/aurora-music/issues) · [MIT License](LICENSE)
 
 ![Aurora Music 1.6 界面预览](docs/images/ui-1.6.png)
 
@@ -33,6 +33,33 @@
 桌面成品自带运行环境，无需另装 Node.js。发布包不包含音乐文件、个人曲库、设置或 API Key。换电脑后需要导入自己的音乐，并按需配置 DeepSeek。
 
 ## 使用
+
+### Android
+
+<p><img src="docs/images/android-home.png" width="260" alt="安卓首页触屏界面预览"> <img src="docs/images/android-player.png" width="260" alt="安卓播放页触屏界面预览"></p>
+
+*上图为手机尺寸的浏览器界面预览，使用合成音频样本；不是安卓真机截图。*
+
+安卓端有独立的触屏界面：深色首页、底部导航、迷你播放器、全屏大封面、同步歌词、滑动切歌、音乐库搜索、喜欢与本地歌单。通过系统文件选择器导入音乐文件或整个文件夹，读取内嵌封面、同名 LRC、同目录封面。歌曲保存在应用私有目录，重启后恢复；卸载会移除应用内的歌曲，原始文件保持不变。
+
+播放使用 AndroidX Media3 系统媒体服务，队列、循环和后台切歌由原生层处理。音量、主题色和减少动态效果设置自动保存。安卓预览版支持 Android 7.0 / API 24 及更新系统；不含桌面版的 DeepSeek、在线资料补全、歌单下载、均衡器与频谱。APK 不包含个人音乐或 API Key。
+
+安装：下载 `Aurora-Music-Android-1.0.0.apk` 到手机，允许当前文件管理器安装此来源的应用，再打开 APK。首次进入点击添加按钮导入本地音乐。手机厂商的省电策略和实际蓝牙设备兼容性尚未完成真机验证。
+
+安卓开发需要 Node.js 22+、JDK 21、Android SDK platform 36 与 build-tools 36.0.0：
+
+```powershell
+npm ci
+npm run dev:android
+# 生成前端并同步安卓工程
+npm run sync:android
+# 构建、lint、生成本机发布签名并校验 APK
+pwsh -File scripts/build-android.ps1
+```
+
+发布签名保存在 `.private/aurora-android.jks`，密码在同目录文本文件中，两者都不会提交 Git。请自行安全备份这两个文件，后续覆盖升级必须保留相同签名。构建环境可通过 `JAVA_HOME` / `ANDROID_HOME` 指定；本地下载工具和缓存放在 `.tools/`，不会修改系统环境。
+
+### Windows
 
 1. 点击「导入文件夹」选择本地音乐；双击歌曲开始播放。
 2. 从底部播放条打开「正在播放」，查看封面、同步歌词和频谱。
@@ -90,6 +117,8 @@ npm run dev
 
 ```text
 src/          React 界面、状态、音频与标签解析
+src/mobile/   安卓触屏界面、原生播放适配与导入
+android/      Capacitor 安卓工程与 Media3 后台服务
 electron/     原生窗口、设置、下载、本地媒体服务与 AI 桥接
 scripts/      回归测试、启动检查与构建辅助脚本
 build/        应用图标
