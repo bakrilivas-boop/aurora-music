@@ -1,0 +1,39 @@
+.desktop-shell { --titlebar-h: 38px; }
+.desktop-bar { position: relative; z-index: 100; }
+.desktop-shell .app { height: calc(100dvh - var(--titlebar-h)); }
+.desktop-bar { height: var(--titlebar-h); display: flex; align-items: center; padding-left: 18px; background: #0c121c; border-bottom: 1px solid rgba(255,255,255,.065); color: #a6b4c5; font-size: 11px; -webkit-app-region: drag; user-select: none; }
+.desktop-brand { display: flex; align-items: center; gap: 9px; letter-spacing: .3px; }
+.desktop-brand > svg { color: var(--accent); }
+.desktop-badge { border-left: 1px solid var(--border); padding-left: 10px; color: var(--text-3); font-size: 10px; }
+.desktop-status { margin-left: auto; margin-right: 28px; max-width: 40%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-3); font-size: 10px; }
+.window-controls { align-self: stretch; display: flex; -webkit-app-region: no-drag; }
+.window-controls button { width: 46px; border-radius: 0; display: grid; place-items: center; transition: background .12s; }
+.window-controls button:hover { background: rgba(255,255,255,.09); }
+.window-controls .window-close:hover { background: #c23d4a; color: white; }
+.window-controls svg { fill: none; stroke: currentColor; stroke-width: 1; }
+.desktop-shell .queue-drawer, .desktop-shell .now-playing { top: var(--titlebar-h); }
+.desktop-shell .modal-mask { top: var(--titlebar-h); }
+.desktop-shell .np-body { grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); align-content: stretch; max-width: 1180px; padding: 0 5vw; }
+.desktop-shell .np-stage { gap: 18px; }
+.desktop-shell .np-cover-wrap { width: min(360px, 29vw, calc(100dvh - 550px)); }
+.desktop-shell .np-lyrics-wrap { height: 100%; }
+@media (max-height: 850px) {
+  .desktop-shell .np-spectrum { display: none; }
+  .desktop-shell .np-cover-wrap { width: min(320px, 29vw, calc(100dvh - 460px)); }
+  .desktop-shell .metadata-info { gap: 4px; margin-top: 10px; }
+}
+.track-viewport { position: relative; }
+.track-row { height: 58px; contain-intrinsic-size: auto 58px; }
+.track-row[tabindex]:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.track-row[aria-current="true"] { box-shadow: inset 3px 0 var(--accent); }
+.queue-drawer[role="dialog"] { width: min(430px, 100vw); }
+.q-item .q-artist { max-width: 75px; }
+.queue-hint { padding: 11px 18px; font-size: 11px; color: var(--text-3); border-bottom: 1px solid var(--border); }
+.q-item.drag-over { box-shadow: inset 0 2px var(--accent); }
+.q-item[draggable="true"] { cursor: grab; }
+.q-item[draggable="true"]:active { cursor: grabbing; }
+.queue-drawer .q-list { display: block; min-height: 0; }
+.queue-drawer .q-item { height: 54px; }
+.app .track-table { overflow: clip; }
+.q-item:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.mini-spectrum i { height: 100%; min-height: 0; transform-origin: center bottom; transition: transform 80ms linear; will-change: transform; }
