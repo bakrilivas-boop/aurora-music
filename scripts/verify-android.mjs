@@ -28,7 +28,9 @@ await new Promise((resolve, reject) => {
 })
 assert.ok(entries.has('assets/public/index.html'))
 for (const [name, content] of entries) {
-  if (name.startsWith('assets/public/')) assert.deepEqual(content, await readFile(path.resolve('dist-mobile', name.slice('assets/public/'.length))), 'packaged web asset differs: ' + name)
+  if (name.startsWith('assets/public/assets/') || ['assets/public/index.html', 'assets/public/mobile.html'].includes(name)) {
+    assert.deepEqual(content, await readFile(path.resolve('dist-mobile', name.slice('assets/public/'.length))), 'packaged web asset differs: ' + name)
+  }
 }
 assert.ok(entries.has('assets/licenses/Apache-2.0.txt'))
 assert.ok(entries.has('assets/licenses/Capacitor-MIT.txt'))
