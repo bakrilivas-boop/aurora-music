@@ -18,6 +18,8 @@ Use `package-lock.json` for the resolved dependency versions. Dependency license
 
 Interface organization and interaction references: [VutronMusic](https://github.com/stark81/VutronMusic), [Nuclear](https://github.com/nukeop/nuclear), and [Moosync-electron](https://github.com/Moosync/Moosync-electron). Their UI source was not merged into this application. Their own licenses remain applicable to their projects.
 
+The 1.6 interface also draws visual inspiration from the cover-focused layout of [YesPlayMusic](https://github.com/qier222/YesPlayMusic) and the spacing and library hierarchy of [Harmonoid](https://github.com/harmonoid/harmonoid). These are design references only; no source code, artwork, fonts or brand assets from these projects are redistributed.
+
 Public API implementation references are identified in the corresponding source files:
 
 - `electron/metadata.cjs`: [KuGouMusicApi](https://github.com/MakcRe/KuGouMusicApi), for lyric endpoint behavior.

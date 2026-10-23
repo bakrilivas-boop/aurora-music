@@ -32,7 +32,6 @@ export function PlayerBar({ onOpenQueue }: { onOpenQueue: () => void }) {
   const toggleFavorite = usePlayer((s) => s.toggleFavorite)
   const favorites = usePlayer((s) => s.favorites)
   const toggleNowPlaying = usePlayer((s) => s.toggleNowPlaying)
-  const toggleSettings = usePlayer((s) => s.toggleSettings)
 
   const current = tracks.find((t) => t.id === currentId) ?? null
   const liked = current ? favorites.includes(current.id) : false
@@ -47,6 +46,7 @@ export function PlayerBar({ onOpenQueue }: { onOpenQueue: () => void }) {
           iconSize={18}
           onClick={() => current && toggleNowPlaying(true)}
           title={current ? '打开歌词页' : '暂无播放'}
+          seed={current ? current.artist + current.title : undefined}
         />
         <div className="pb-meta">
           <span className="pb-title" title={current?.title}>
@@ -104,10 +104,11 @@ export function PlayerBar({ onOpenQueue }: { onOpenQueue: () => void }) {
       </div>
 
       <div className="pb-right">
+        <button className="ctrl-play pb-compact-play" onClick={togglePlay} disabled={!tracks.length} title={playing ? '暂停' : '播放'}>{playing ? <IconPause size={18} /> : <IconPlay size={18} />}</button>
         {settings.showSpectrum && playing && <Spectrum mini bars={16} />}
         <button
           className={`ctrl${settings.eqEnabled ? ' on' : ''}`}
-          onClick={() => toggleSettings(true)}
+          onClick={() => window.dispatchEvent(new Event('aurora:equalizer-open'))}
           title="均衡器"
         >
           <IconEq size={16} />

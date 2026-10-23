@@ -172,7 +172,7 @@ export function TrackList({ tracks, queueIds, onRemove, removeLabel = '从歌单
               </div>
 
               <div className="t-main">
-                <Cover src={track.cover} className="t-cover" iconSize={16} />
+                <Cover src={track.cover} seed={track.artist + track.title} className="t-cover" iconSize={16} />
                 <div className="t-text">
                   <span className="t-title">
                     {track.title}

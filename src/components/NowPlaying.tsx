@@ -42,6 +42,7 @@ export function NowPlaying() {
 
   const wrapRef = useRef<HTMLDivElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
+  const dialogRef = useRef<HTMLDivElement>(null)
   const [lineIdx, setLineIdx] = useState(-1)
   const idxRef = useRef(-1)
 
@@ -81,11 +82,18 @@ export function NowPlaying() {
   }, [lineIdx, parsed.lines.length])
 
   useEffect(() => {
+    const previous = document.activeElement as HTMLElement | null
+    dialogRef.current?.querySelector<HTMLButtonElement>('.np-close')?.focus()
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') toggleNowPlaying(false)
+      if (e.key !== 'Tab') return
+      const controls = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>('button, [tabindex="0"]') || []).filter((control) => control.getClientRects().length > 0)
+      const first = controls[0], last = controls[controls.length - 1]
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last?.focus() }
+      if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first?.focus() }
     }
     window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+    return () => { window.removeEventListener('keydown', onKey); previous?.focus() }
   }, [toggleNowPlaying])
 
   if (!current) return null
@@ -93,7 +101,7 @@ export function NowPlaying() {
   const bg = current.cover ? { backgroundImage: `url("${current.cover}")` } : undefined
 
   return (
-    <div className="now-playing">
+    <div className="now-playing" ref={dialogRef} role="dialog" aria-modal="true" aria-label="正在播放">
       <div className="np-bg" style={bg} />
       <div className="np-veil" />
 
@@ -109,7 +117,7 @@ export function NowPlaying() {
         <div className="np-stage">
           <div className="np-cover-wrap">
             <div className="np-glow" />
-            <Cover src={current.cover} className="np-cover" iconSize={48} />
+            <Cover src={current.cover} seed={current.artist + current.title} className="np-cover" iconSize={58} />
           </div>
 
           <div className="np-meta">
@@ -140,6 +148,10 @@ export function NowPlaying() {
                   className={`lyric-line${i === lineIdx ? ' active' : ''}`}
                   onClick={() => engine.seek(line.time)}
                   title="点击跳转"
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`跳转到 ${line.text || '间奏'}`}
+                  onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); event.stopPropagation(); engine.seek(line.time) } }}
                 >
                   <span className="ly-fill">{line.text || '♪'}</span>
                 </div>

@@ -1,7 +1,7 @@
 {
   "name": "aurora-music",
   "private": true,
-  "version": "1.5.0",
+  "version": "1.6.0",
   "description": "Aurora Music - 高颜值本地音乐播放器",
   "author": "Aurora Music",
   "type": "module",

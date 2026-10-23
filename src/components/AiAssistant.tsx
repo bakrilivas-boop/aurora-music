@@ -97,7 +97,11 @@ export function AiAssistant() {
   const bridge = (window as unknown as { auroraDesktop?: AiBridge }).auroraDesktop
 
   useEffect(() => {
-    const show = () => setOpen(true)
+    const show = (event: Event) => {
+      const text = (event as CustomEvent<{ query?: unknown }>).detail?.query
+      if (typeof text === 'string') setQuery(text.slice(0, 500))
+      setOpen(true)
+    }
     const onKey = (event: KeyboardEvent) => {
       if ((!event.ctrlKey && !event.metaKey) || event.key.toLowerCase() !== 'k') return
       const active = document.activeElement as HTMLElement | null

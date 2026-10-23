@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { usePlayer, type SortKey } from '../lib/store'
-import { IconArrowDown, IconArrowUp, IconFolder, IconRefresh, IconSearch, IconSettings, IconSpark } from './Icons'
+import { IconArrowDown, IconArrowUp, IconFolder, IconMenu, IconRefresh, IconSearch, IconSettings, IconSpark } from './Icons'
 
 const SORTS: { key: SortKey; label: string }[] = [
   { key: 'addedAt', label: '最近添加' },
@@ -57,8 +57,8 @@ export function TopBar({ onOpenSidebar }: { onOpenSidebar: () => void }) {
 
   return (
     <header className="topbar">
-      <button className="btn icon-only ghost mobile-nav-btn" onClick={onOpenSidebar} title="菜单" style={{ display: 'none' }}>
-        <IconSettings size={16} />
+      <button className="btn icon-only ghost mobile-nav-btn" onClick={onOpenSidebar} title="菜单">
+        <IconMenu size={16} />
       </button>
 
       <div className="search-box">
@@ -110,7 +110,7 @@ export function TopBar({ onOpenSidebar }: { onOpenSidebar: () => void }) {
       )}
 
       <div className="top-actions">
-        <button className="btn" onClick={() => window.dispatchEvent(new Event('aurora:downloads-open'))}>获取歌曲</button>
+        <button className="btn" onClick={() => window.dispatchEvent(new Event('aurora:downloads-open'))}><IconArrowDown size={14} />获取歌曲</button>
         <button className="btn ai-trigger" aria-label="AI 音乐助手" title="DeepSeek 音乐助手 (Ctrl K)" onClick={() => window.dispatchEvent(new Event('aurora:ai-open'))}><IconSpark size={15} /><span>AI 助手</span></button>
         {hasHandle && (
           <button className="btn ghost icon-only" title="重新扫描文件夹" onClick={() => void rescan()} disabled={scanning}>

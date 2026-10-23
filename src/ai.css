@@ -3,14 +3,14 @@
   max-height: min(820px, calc(100dvh - 48px));
   padding: 0;
   border: 1px solid var(--border-strong);
-  border-radius: 22px;
-  background: var(--bg-2);
+  border-radius: 20px;
+  background: #1b1b24;
   color: var(--text);
   box-shadow: 0 28px 100px rgba(0, 0, 0, .5);
   overflow: hidden;
 }
 .ai-dialog[open] { display: flex; flex-direction: column; }
-.ai-dialog::backdrop { background: rgba(2, 7, 14, .78); }
+.ai-dialog::backdrop { background: rgba(8, 8, 13, .78); }
 .ai-head { display: flex; flex-shrink: 0; align-items: center; gap: 13px; padding: 20px 26px 17px; border-bottom: 1px solid var(--border); }
 .ai-mark { display: grid; place-items: center; width: 46px; height: 46px; border-radius: 15px; background: var(--accent-soft); color: var(--accent); }
 .ai-head h2 { margin: 0; font-size: 20px; font-weight: 650; }
@@ -79,7 +79,7 @@
 .ai-scene-picker summary span { margin-left: 8px; font-size: 10px; color: var(--text-3); }
 .ai-scene-fields { display: grid; grid-template-columns: 1fr 1fr 1.3fr 1fr; gap: 10px; margin-top: 13px; }
 .ai-scene-fields label { display: flex; min-width: 0; flex-direction: column; gap: 6px; font-size: 10.5px; color: var(--text-3); }
-.ai-scene-fields select, .ai-scene-fields input, .ai-scene-fields output { width: 100%; box-sizing: border-box; min-width: 0; border: 1px solid var(--border-strong); border-radius: 8px; background: var(--bg-2); color: var(--text-2); font-size: 11px; padding: 8px; }
+.ai-scene-fields select, .ai-scene-fields input, .ai-scene-fields output { width: 100%; box-sizing: border-box; min-width: 0; border: 1px solid var(--border-strong); border-radius: 8px; background: #1b1b24; color: var(--text-2); font-size: 11px; padding: 8px; }
 .ai-scene-fields output { line-height: 16px; white-space: nowrap; }
 .ai-scene-target { grid-column: 1 / -1; }
 .ai-scene-footer { display: flex; gap: 12px; align-items: center; justify-content: space-between; margin-top: 10px; }
@@ -115,3 +115,12 @@
   .ai-order-preview { grid-template-columns: minmax(0, 1fr); }
   .ai-order-arrow { transform: rotate(90deg); }
 }
+
+.ai-dialog[open] { animation: modalIn 240ms var(--ease); }
+.ai-dialog::backdrop { backdrop-filter: blur(8px); }
+.ai-head { padding: 24px 28px 20px; }
+.ai-body { padding: 22px 28px 26px; }
+.ai-mark { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+.ai-form { padding: 18px; border: 1px solid var(--border); border-radius: 13px; background: #ffffff03; }
+.ai-examples .chip { border-radius: 8px; }
+.ai-result { border-radius: 12px; }

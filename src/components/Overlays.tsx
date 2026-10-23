@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { usePlayer } from '../lib/store'
-import { fmtTime } from './common'
-import { IconClose, IconMusic, IconPlay, IconQueue, IconTrash } from './Icons'
+import { Cover, fmtTime } from './common'
+import { IconClose, IconPlay, IconQueue, IconTrash } from './Icons'
 
 export function QueueDrawer({ onClose }: { onClose: () => void }) {
   const queue = usePlayer((s) => s.queue)
@@ -61,7 +61,7 @@ export function QueueDrawer({ onClose }: { onClose: () => void }) {
               onDrop={(e) => { e.preventDefault(); if (drag.current) moveInQueue(drag.current, index); drag.current = null; setOver(null) }}
               onDragEnd={() => { drag.current = null; setOver(null) }}>
               <span className="q-idx">{index + 1}</span>
-              <div className="t-cover" style={{ width: 30, height: 30, borderRadius: 8, ...(track.cover ? { backgroundImage: 'url("' + track.cover + '")' } : {}) }}>{!track.cover && <IconMusic size={13} />}</div>
+              <Cover src={track.cover} seed={track.artist + track.title} className="t-cover" iconSize={13} />
               <span className="q-title" title={track.title}>{track.title}</span>
               <span className="q-artist" title={track.artist}>{track.artist}</span>
               <span style={{ fontSize: 10.5, color: 'var(--text-3)', fontVariantNumeric: 'tabular-nums' }}>{track.duration ? fmtTime(track.duration) : '--:--'}</span>

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { EQ_FREQS, EQ_LABELS, EQ_PRESETS, engine } from '../lib/audio'
 import { usePlayer } from '../lib/store'
 import { IconClose, IconEq, IconRefresh, IconSpark, IconTrash } from './Icons'
@@ -22,6 +22,13 @@ export function SettingsModal() {
   const hasHandle = usePlayer((s) => s.hasHandle)
   const pushToast = usePlayer((s) => s.pushToast)
   const dialogRef = useRef<HTMLDivElement>(null)
+  const [section, setSection] = useState('preferences')
+
+  useEffect(() => {
+    const show = () => { setSection('equalizer'); toggleSettings(true) }
+    window.addEventListener('aurora:equalizer-open', show)
+    return () => window.removeEventListener('aurora:equalizer-open', show)
+  }, [toggleSettings])
 
   useEffect(() => {
     document.documentElement.dataset.reducedMotion = String(settings.reducedMotion)
@@ -38,7 +45,7 @@ export function SettingsModal() {
         toggleSettings(false)
       }
       if (e.key !== 'Tab' || !dialog) return
-      const controls = Array.from(dialog.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), [tabindex="0"]'))
+      const controls = Array.from(dialog.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), [tabindex="0"]')).filter((control) => control.getClientRects().length > 0)
       const first = controls[0]
       const last = controls[controls.length - 1]
       if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last?.focus() }
@@ -71,8 +78,13 @@ export function SettingsModal() {
           </button>
         </div>
 
+        <nav className="settings-nav" aria-label="设置分类">{[
+          ['preferences', '外观与播放'], ['equalizer', '均衡器'], ['library', '音乐库'], ['about', '快捷键与关于'],
+        ].map(([key, label]) => <button key={key} aria-pressed={section === key} onClick={() => setSection(key)}>{label}</button>)}</nav>
+
         <div className="modal-body">
-          <p className="empty-hint" style={{ marginTop: 0 }}>更改会自动保存，下次打开继续使用。</p>
+          <p className="settings-save-note"><span className="status-dot" />所有更改自动保存，下次打开继续使用</p>
+          <section className="settings-section" hidden={section !== 'preferences'}>
           <div className="setting-group">
             <h4>外观与动效</h4>
             <div className="setting-row">
@@ -136,6 +148,8 @@ export function SettingsModal() {
             </div>
           </div>
 
+          </section>
+          <section className="settings-section" hidden={section !== 'equalizer'}>
           <div className="setting-group">
             <h4 style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <IconEq size={13} /> 十段均衡器
@@ -191,6 +205,8 @@ export function SettingsModal() {
             </div>
           </div>
 
+          </section>
+          <section className="settings-section" hidden={section !== 'library'}>
           <div className="setting-group">
             <h4>音乐库</h4>
             <div className="setting-row">
@@ -230,6 +246,8 @@ export function SettingsModal() {
             </div>
           </div>
 
+          </section>
+          <section className="settings-section" hidden={section !== 'about'}>
           <div className="setting-group">
             <h4>键盘快捷键</h4>
             <div className="setting-row" style={{ flexWrap: 'wrap', gap: '8px 18px' }}>
@@ -256,13 +274,14 @@ export function SettingsModal() {
             <h4>关于</h4>
             <div className="setting-row">
               <div className="sr-text">
-                <div className="sr-title">Aurora Music 1.4</div>
+                <div className="sr-title">Aurora Music 1.6</div>
                 <div className="sr-desc">
                   本地音乐播放器 · 支持 ID3v2 / FLAC / M4A 标签、内嵌封面与 LRC 歌词 · Web Audio 十段均衡器 · 歌单下载支持官方音源与备用解析
                 </div>
               </div>
             </div>
           </div>
+          </section>
         </div>
       </div>
     </div>

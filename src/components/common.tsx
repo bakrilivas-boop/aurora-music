@@ -23,24 +23,38 @@ export function Cover({
   iconSize = 18,
   onClick,
   title,
+  seed = title || 'Aurora',
+  children,
 }: {
   src?: string
   className: string
   iconSize?: number
   onClick?: () => void
   title?: string
+  seed?: string
+  children?: React.ReactNode
 }) {
-  const style = src ? { backgroundImage: `url("${src.replace(/"/g, '%22')}")` } : undefined
+  const Tag = onClick ? 'button' : 'div'
   return (
-    <div className={className} style={style} onClick={onClick} title={title}>
+    <Tag className={className} style={coverStyle(src, seed)} onClick={onClick} title={title} aria-label={onClick ? title : undefined}>
       {!src && <IconMusic size={iconSize} />}
       {src && onClick ? (
         <div className="expand-hint">
           <IconMusic size={16} />
         </div>
       ) : null}
-    </div>
+      {children}
+    </Tag>
   )
+}
+
+/** Stable artwork for tracks without a cover; no network or extra image assets. */
+export function coverStyle(src?: string, seed = 'Aurora') {
+  if (src) return { backgroundImage: `url("${src.replace(/"/g, '%22')}")` }
+  let hash = 0
+  for (const char of seed) hash = (hash * 31 + char.charCodeAt(0)) | 0
+  const hue = Math.abs(hash) % 360
+  return { backgroundImage: `radial-gradient(ellipse at 18% 0%, hsla(${hue + 35}, 70%, 78%, .5), transparent 65%), repeating-radial-gradient(circle at 80% 85%, transparent 0 18px, #ffffff09 19px 20px), linear-gradient(145deg, hsl(${hue}, 33%, 34%), hsl(${hue + 25}, 35%, 13%))` }
 }
 
 /* ------------------------------ 进度条 ------------------------------ */

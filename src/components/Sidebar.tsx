@@ -46,6 +46,13 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
     if (creating) inputRef.current?.focus()
   }, [creating])
 
+  useEffect(() => {
+    if (!open) return
+    const close = (event: KeyboardEvent) => { if (event.key === 'Escape') onClose() }
+    window.addEventListener('keydown', close)
+    return () => window.removeEventListener('keydown', close)
+  }, [open, onClose])
+
   const commit = () => {
     if (draft.trim()) createPlaylist(draft)
     setDraft('')

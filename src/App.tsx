@@ -50,9 +50,14 @@ export default function App() {
   const cover = usePlayer((s) => s.tracks.find((t) => t.id === s.currentId)?.cover)
   const nowPlayingOpen = usePlayer((s) => s.nowPlayingOpen)
   const settings = usePlayer((s) => s.settings)
+  const view = usePlayer((s) => s.view)
+  const activePlaylistId = usePlayer((s) => s.activePlaylistId)
+  const contentRef = useRef<HTMLElement>(null)
   const [queueOpen, setQueueOpen] = useState(false)
   const closeQueue = useCallback(() => setQueueOpen(false), [])
   const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  useEffect(() => { contentRef.current?.scrollTo({ top: 0 }) }, [view, activePlaylistId])
 
   useEffect(() => {
     void init()
@@ -198,6 +203,7 @@ export default function App() {
       <Aura src={cover} />
       <div className="aura-mask" />
 
+      {sidebarOpen && <button className="sidebar-backdrop" aria-label="关闭导航" onClick={() => setSidebarOpen(false)} />}
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <main className="main">
@@ -210,8 +216,8 @@ export default function App() {
             </div>
           </div>
         ) : (
-          <section className="content">
-            <Views />
+          <section className="content" ref={contentRef}>
+            <div className="view-surface" key={`${view}:${activePlaylistId ?? ''}`}><Views /></div>
           </section>
         )}
       </main>

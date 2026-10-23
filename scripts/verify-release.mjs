@@ -3,7 +3,7 @@ import { readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import asar from '@electron/asar'
 
-const archive = 'release/win-unpacked/resources/app.asar'
+const archive = process.argv[2] || 'release/win-unpacked/resources/app.asar'
 const version = JSON.parse(readFileSync('package.json', 'utf8')).version
 assert.equal(JSON.parse(asar.extractFile(archive, 'package.json').toString()).version, version)
 const files = ['dist/index.html', ...readdirSync('electron').filter((name) => name.endsWith('.cjs')).map((name) => join('electron', name)), ...readdirSync('dist/assets').map((name) => join('dist/assets', name))]

@@ -243,7 +243,7 @@ async function createWindow() {
   win = new BrowserWindow({
     width: Math.max(900, Math.min(2560, saved?.width || 1440)), height: Math.max(620, Math.min(1600, saved?.height || 900)),
     ...(validPosition ? { x: saved.x, y: saved.y } : {}),
-    minWidth: 900, minHeight: 620, frame: false, backgroundColor: '#0b111b', title: 'Aurora Music', show: false,
+    minWidth: 900, minHeight: 620, frame: false, backgroundColor: '#0c0c11', title: 'Aurora Music', show: false,
     icon: path.join(ROOT, 'build/icon.png'),
     webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true, spellcheck: false },
   })

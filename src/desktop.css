@@ -1,7 +1,7 @@
 .desktop-shell { --titlebar-h: 38px; }
 .desktop-bar { position: relative; z-index: 100; }
 .desktop-shell .app { height: calc(100dvh - var(--titlebar-h)); }
-.desktop-bar { height: var(--titlebar-h); display: flex; align-items: center; padding-left: 18px; background: #0c121c; border-bottom: 1px solid rgba(255,255,255,.065); color: #a6b4c5; font-size: 11px; -webkit-app-region: drag; user-select: none; }
+.desktop-bar { height: var(--titlebar-h); display: flex; align-items: center; padding-left: 18px; background: #0c0c11; border-bottom: 0; color: #b4b0c2; font-size: 11px; -webkit-app-region: drag; user-select: none; }
 .desktop-brand { display: flex; align-items: center; gap: 9px; letter-spacing: .3px; }
 .desktop-brand > svg { color: var(--accent); }
 .desktop-badge { border-left: 1px solid var(--border); padding-left: 10px; color: var(--text-3); font-size: 10px; }
@@ -11,15 +11,17 @@
 .window-controls button:hover { background: rgba(255,255,255,.09); }
 .window-controls .window-close:hover { background: #c23d4a; color: white; }
 .window-controls svg { fill: none; stroke: currentColor; stroke-width: 1; }
-.desktop-shell .queue-drawer, .desktop-shell .now-playing { top: var(--titlebar-h); }
+.desktop-shell .now-playing { top: var(--titlebar-h); }
+.desktop-shell .queue-drawer { top: calc(var(--titlebar-h) + 8px); }
+.desktop-shell .main { margin-top: 0; }
 .desktop-shell .modal-mask { top: var(--titlebar-h); }
 .desktop-shell .np-body { grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); align-content: stretch; max-width: 1180px; padding: 0 5vw; }
 .desktop-shell .np-stage { gap: 18px; }
-.desktop-shell .np-cover-wrap { width: min(360px, 29vw, calc(100dvh - 550px)); }
+.desktop-shell .np-cover-wrap { width: min(400px, 30vw, calc(100dvh - 390px)); }
 .desktop-shell .np-lyrics-wrap { height: 100%; }
 @media (max-height: 850px) {
   .desktop-shell .np-spectrum { display: none; }
-  .desktop-shell .np-cover-wrap { width: min(320px, 29vw, calc(100dvh - 460px)); }
+  .desktop-shell .np-cover-wrap { width: min(360px, 30vw, calc(100dvh - 340px)); }
   .desktop-shell .metadata-info { gap: 4px; margin-top: 10px; }
 }
 .track-viewport { position: relative; }

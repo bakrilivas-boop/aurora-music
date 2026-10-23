@@ -155,6 +155,30 @@ try {
   const native = await cdp.eval(`(async () => ({ version: (await window.auroraDesktop.info()).version, model: (await window.auroraDesktop.aiInfo()).model, metadata: typeof window.auroraDesktop.metadata, ai: typeof window.auroraDesktop.aiRecommend, playlist: typeof window.auroraDesktop.playlistPreview, downloads: typeof window.auroraDesktop.enqueueDownloads, settings: typeof window.auroraDesktop.settingsWrite, library: typeof window.auroraDesktop.nativeLibrary }))()`)
   record('当前版本资料、设置和自动入库接口可用', native.version === JSON.parse(readFileSync('package.json', 'utf8')).version && native.model === 'deepseek-flash' && [native.metadata, native.ai, native.playlist, native.downloads, native.settings, native.library].every((value) => value === 'function'), native)
 
+  const equalizer = await cdp.eval(`(async () => {
+    document.querySelector('.playerbar button[title="均衡器"]').click()
+    await new Promise(resolve => setTimeout(resolve, 80))
+    return !!document.querySelector('.settings-section:not([hidden]) .eq-bands')
+  })()`)
+  record('播放条直接打开均衡器分类', equalizer)
+  const preferences = await cdp.eval(`(async () => {
+    document.querySelector('.settings-nav button').click()
+    await new Promise(resolve => setTimeout(resolve, 40))
+    const section = document.querySelector('.settings-section:not([hidden])')
+    return { categories: document.querySelectorAll('.settings-nav button').length, appearance: !!section?.querySelector('[aria-label="减弱动态效果"]'), hiddenEQ: !section?.querySelector('.eq-bands') }
+  })()`)
+  record('分类设置仅显示选中内容', preferences.categories === 4 && preferences.appearance && preferences.hiddenEQ, preferences)
+  const motion = await cdp.eval(`(async () => {
+    document.querySelector('[aria-label="减弱动态效果"]').click()
+    await new Promise(resolve => setTimeout(resolve, 60))
+    return document.documentElement.dataset.reducedMotion === 'true' && window.auroraDesktop.settingsRead().reducedMotion === true
+  })()`)
+  record('动效偏好立即生效并保存到原生设置', motion)
+  await cdp.send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Escape', code: 'Escape' })
+  await cdp.send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Escape', code: 'Escape' })
+  await sleep(60)
+  record('Escape 关闭设置', await cdp.eval(`!document.querySelector('.modal[role="dialog"]')`))
+
   const shot = await cdp.send('Page.captureScreenshot', { format: 'png' })
   writeFileSync(resolve(OUT, 'desktop-app.png'), Buffer.from(shot.data, 'base64'))
   record('窗口截图', true)

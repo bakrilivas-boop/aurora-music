@@ -179,6 +179,7 @@ export const IconEq = (p: IconProps) =>
     p,
   )
 export const IconClose = (p: IconProps) => base(<path d="m5.5 5.5 13 13M18.5 5.5l-13 13" />, p)
+export const IconMenu = (p: IconProps) => base(<path d="M4 6h16M4 12h16M4 18h16" />, p)
 export const IconFolder = (p: IconProps) =>
   base(
     <path d="M3 7.4a1.8 1.8 0 0 1 1.8-1.8h4l2 2.4h8.4A1.8 1.8 0 0 1 21 9.8v8.4a1.8 1.8 0 0 1-1.8 1.8H4.8A1.8 1.8 0 0 1 3 18.2Z" />,

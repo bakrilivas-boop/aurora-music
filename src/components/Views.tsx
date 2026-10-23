@@ -2,6 +2,7 @@ import { useDeferredValue, useEffect, useMemo, useState } from 'react'
 import { usePlayer, type SortKey } from '../lib/store'
 import { trackSource, type Track } from '../lib/types'
 import { TrackList } from './TrackList'
+import { Cover, coverStyle } from './common'
 import { IconClock, IconDisc, IconEq, IconFolder, IconHeart, IconLibrary, IconMic, IconMusic, IconPause, IconPlay, IconShuffle, IconSpark } from './Icons'
 
 const collator = new Intl.Collator('zh-Hans-CN', { sensitivity: 'base', numeric: true })
@@ -81,7 +82,7 @@ function PageHead({
 }) {
   return (
     <div className="page-head">
-      <div className="ph-cover" style={cover ? { backgroundImage: `url("${cover}")` } : undefined}>
+      <div className="ph-cover" style={coverStyle(cover, title)}>
         {!cover && <IconDisc size={34} />}
       </div>
       <div className="ph-meta">
@@ -217,13 +218,13 @@ export function Views() {
 
   if (view === 'home') {
     const focus = byId.get(currentId ?? '') ?? recentPlayed[0] ?? recentAdded[0]
-    const listening = recentPlayed.length ? recentPlayed : recentAdded
+    const listening = [...new Map<string, Track>([...recentPlayed, ...recentAdded].map((track) => [track.id, track])).values()]
     const listeningIds = listening.filter((t) => trackSource(t)).map((t) => t.id)
     const libraryDuration = tracks.reduce((sum, t) => sum + t.duration, 0)
     return (
       <div className="home-view" aria-busy={search !== deferredSearch}>
         <div className="home-heading">
-          <div><div className="kicker">YOUR PERSONAL SOUNDSPACE</div><h1>{tracks.length ? '今天，听点喜欢的。' : '好音乐，从这里开始。'}</h1><p>让熟悉的旋律，回到日常。</p></div>
+          <div><div className="kicker">AURORA / YOUR PERSONAL SOUNDSPACE</div><h1>{tracks.length ? '此刻，让音乐接管。' : '为喜欢的声音，留点时间。'}</h1><p>{tracks.length ? `${tracks.length} 首音乐，和只属于你的聆听时光。` : '你的音乐，你的节奏。'}</p></div>
           <span className="local-badge"><span /> 本地 · 私享</span>
         </div>
         {statusBanner}
@@ -234,7 +235,7 @@ export function Views() {
             <div className="home-hero-grid">
               <section className={`home-hero${focus ? ' has-track' : ''}`}>
                 <div className="home-hero-copy">
-                  <div className="hero-eyebrow"><IconSpark size={13} /> {focus ? '为你保留的旋律' : '音乐属于你自己'}</div>
+                  <div className="hero-eyebrow"><span className="status-dot" /> {focus ? '为你保留的旋律 · CONTINUE LISTENING' : '每一次聆听，都值得认真对待'}</div>
                   <h2>{focus ? focus.title : <>把喜欢的音乐，<br />留在身边。</>}</h2>
                   <p>{focus ? `${focus.artist} · ${focus.album}` : '导入本地文件夹，封面、专辑与歌词自动归位。打开就能沉浸在你的音乐里。'}</p>
                   <div className="hero-actions">
@@ -251,7 +252,7 @@ export function Views() {
                 </div>
                 <div className="hero-art" aria-hidden="true">
                   <div className="hero-vinyl"><span /></div>
-                  <div className="hero-sleeve" style={focus?.cover ? { backgroundImage: `url("${focus.cover}")` } : undefined}>{!focus?.cover && <IconMusic size={44} />}<span>AURORA</span></div>
+                  <div className="hero-sleeve" style={coverStyle(focus?.cover, (focus?.artist || "") + (focus?.title || "Aurora"))}>{!focus?.cover && <IconMusic size={50} />}<span>AURORA / PERSONAL COLLECTION</span></div>
                 </div>
               </section>
               <section className="library-overview" aria-label="音乐库概览">
@@ -264,9 +265,9 @@ export function Views() {
             {tracks.length > 0 ? (
               <section className="home-section">
                 <div className="section-heading"><div><h2>{recentPlayed.length ? '继续聆听' : '最近加入'}</h2><p>{recentPlayed.length ? '熟悉的旋律，随时接着听。' : '属于你的声音，已经准备好。'}</p></div><button className="text-link" onClick={() => setView(recentPlayed.length ? 'recent' : 'library')}>查看全部 <span aria-hidden="true">→</span></button></div>
-                <div className="home-track-grid">{listening.slice(0, 4).map((t) => (
-                  <button key={t.id} className={`home-track${currentId === t.id ? ' active' : ''}`} disabled={!trackSource(t)} onClick={() => playQueue(listeningIds, listeningIds.indexOf(t.id), false)} title={trackSource(t) ? `播放 ${t.title}` : '请先恢复文件夹访问'}>
-                    <span className="home-track-cover" style={t.cover ? { backgroundImage: `url("${t.cover}")` } : undefined}>{!t.cover && <IconMusic size={23} />}<span className="home-track-play"><IconPlay size={16} /></span></span><span className="home-track-title">{t.title}</span><span className="home-track-artist">{t.artist}</span>
+                <div className="home-track-grid">{listening.slice(0, 5).map((t) => (
+                  <button key={t.id} className={`home-track${currentId === t.id ? ' active' : ''}`} disabled={!trackSource(t)} onClick={() => currentId === t.id ? togglePlay() : playQueue(listeningIds, listeningIds.indexOf(t.id), false)} title={trackSource(t) ? `播放 ${t.title}` : '请先恢复文件夹访问'}>
+                    <Cover src={t.cover} seed={t.artist + t.title} className="home-track-cover" iconSize={32}><span className="home-track-play">{currentId === t.id && playing ? <IconPause size={18} /> : <IconPlay size={18} />}</span></Cover><span className="home-track-title">{t.title}</span><span className="home-track-artist">{t.artist}</span>
                   </button>
                 ))}</div>
               </section>
@@ -280,6 +281,7 @@ export function Views() {
                 ].map((step, i) => <div className="onboarding-card" key={step.title}><div className="onboarding-icon">{step.icon}<span>0{i + 1}</span></div><h3>{step.title}</h3><p>{step.desc}</p></div>)}</div>
               </section>
             )}
+            <section className="home-scene"><div><span className="scene-icon"><IconSpark size={20} /></span><h2>让音乐，懂你的此刻。</h2><p>说说心情，让 AI 从你的曲库里挑选。</p></div><div className="scene-actions">{['专注工作', '深夜放松', '通勤路上'].map((scene) => <button key={scene} className="chip" onClick={() => window.dispatchEvent(new CustomEvent('aurora:ai-open', { detail: { query: `从我的本地曲库中，推荐适合${scene}的歌曲并创建歌单。` } }))}>{scene}<span aria-hidden="true">↗</span></button>)}</div></section>
             <div className="home-shortcuts"><button onClick={() => setView('favorites')}><IconHeart size={19} /><span><strong>我的收藏</strong><small>把心动留在这里</small></span><span aria-hidden="true">↗</span></button><button onClick={() => setView('albums')}><IconDisc size={19} /><span><strong>专辑时光</strong><small>完整听完一张好专辑</small></span><span aria-hidden="true">↗</span></button><button onClick={() => setView('recent')}><IconClock size={19} /><span><strong>最近播放</strong><small>重逢刚刚听过的旋律</small></span><span aria-hidden="true">↗</span></button></div>
           </>
         )}
@@ -367,7 +369,7 @@ export function Views() {
                   setDrill({ type: 'album', value: a.key })
                 }}
               >
-                <div className="ac-cover" style={a.cover ? { backgroundImage: `url("${a.cover}")` } : undefined}>
+                <div className="ac-cover" style={coverStyle(a.cover, a.name)}>
                   {!a.cover && <IconDisc size={28} />}
                   <button
                     className="ac-play"
@@ -471,7 +473,7 @@ export function Views() {
                   setDrill({ type: 'artist', value: a.name })
                 }}
               >
-                <div className="ar-cover" style={a.cover ? { backgroundImage: `url("${a.cover}")` } : undefined}>
+                <div className="ar-cover" style={coverStyle(a.cover, a.name)}>
                   {!a.cover && <IconMic size={26} />}
                 </div>
                 <span className="ac-title" title={a.name} style={{ maxWidth: '100%' }}>

@@ -128,7 +128,7 @@ export const DEFAULT_SETTINGS: Settings = {
   eqEnabled: false,
   eqGains: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   showSpectrum: true,
-  accent: '#39c5b6',
+  accent: '#a291ff',
   autoAnalyze: true,
   reducedMotion: false,
   autoMetadata: true,
