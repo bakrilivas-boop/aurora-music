@@ -82,4 +82,12 @@ await mobile.importAndroid(false)
 assert.equal(state.tracks.length, oldCount)
 assert.equal(state.scanning, false)
 console.log('PASS canceling file selection keeps the library and clears the import indicator')
-console.log('Android adapter regressions: 6/6 passed (native bridge mocked)')
+const previousReads = bridge.readRange
+bridge.readRange = async () => { throw new Error('damaged tags') }
+const verified = { id: 'e'.repeat(64), name: 'Artist - Verified.wav', relative: '下载的音乐/Artist - Verified.wav', uri: 'file:///data/user/0/com.aurora.music/files/music/verified.wav', size: 50000, duration: 120 }
+await mobile.importAndroid(false, { files: [verified] }, true)
+assert.equal(state.tracks.find(t => t.id === 'android_' + verified.id)?.duration,120)
+assert.equal(state.tracks.find(t => t.id === 'android_' + verified.id)?.title,'Verified')
+bridge.readRange = previousReads
+console.log('PASS native-verified downloads still import when optional tag parsing fails')
+console.log('Android adapter regressions: 7/7 passed (native bridge mocked)')

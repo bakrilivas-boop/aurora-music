@@ -24,6 +24,7 @@
 
         </activity>
 
+        <service android:name=".MusicDownloadService" android:foregroundServiceType="dataSync" android:exported="false" />
         <service android:name=".PlaybackService" android:foregroundServiceType="mediaPlayback" android:exported="true">
             <intent-filter><action android:name="androidx.media3.session.MediaSessionService" /></intent-filter>
         </service>
@@ -45,4 +46,6 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 </manifest>

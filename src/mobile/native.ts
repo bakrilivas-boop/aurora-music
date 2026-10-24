@@ -7,7 +7,7 @@ import { parseAudioTags, isAudioFile, extOf, guessFromName } from '../lib/tags'
 import { readLyrics } from '../lib/library'
 import type { Track } from '../lib/types'
 
-interface MobileFile { id: string; name: string; relative: string; uri: string; size: number }
+export interface MobileFile { id: string; name: string; relative: string; uri: string; size: number; duration?: number }
 interface PlaybackState { id: string; playing: boolean; position: number; duration: number; queue?: string[]; error?: string }
 interface AndroidBridge {
   pick(options: { folder: boolean }): Promise<{ files: MobileFile[]; cancelled?: boolean; failed?: number }>
@@ -35,13 +35,15 @@ export function restoreMobileTrack(track: Track): Track {
   return track.mobileUri ? { ...track, nativeUrl: fileUrl(track.mobileUri), cover: fileUrl(track.mobileCover), embeddedLyrics: track.mobileLyrics } : track
 }
 
-export async function importAndroid(folder: boolean) {
+let importing = false
+export async function importAndroid(folder: boolean, supplied?: { files: MobileFile[]; cancelled?: boolean; failed?: number }, silent = false): Promise<number> {
   const store = usePlayer.getState()
-  if (store.scanning) return
-  usePlayer.setState({ scanning: true, scanProgress: { done: 0, total: 0, phase: 'walk' } })
+  if (store.scanning || importing) return 0
+  importing = true
+  if (!silent) usePlayer.setState({ scanning: true, scanProgress: { done: 0, total: 0, phase: 'walk' } })
   try {
-    const result = await Android.pick({ folder })
-    if (result.cancelled) return
+    const result = supplied || await Android.pick({ folder })
+    if (result.cancelled) return 0
     const audio = result.files.filter(f => isAudioFile(f.name))
     const lookup = new Map(result.files.map(f => [f.relative.toLowerCase(), f]))
     const read = async (f: MobileFile, start: number, end: number) => {
@@ -52,7 +54,7 @@ export async function importAndroid(folder: boolean) {
     let failed = result.failed || 0
     for (let i = 0; i < audio.length; i++) {
       const f = audio[i]
-      usePlayer.setState({ scanProgress: { done: i, total: audio.length, phase: 'parse' } })
+      if (!silent) usePlayer.setState({ scanProgress: { done: i, total: audio.length, phase: 'parse' } })
       try {
         const meta = await parseAudioTags({ name: f.name, size: f.size, slice: (start, end) => ({ arrayBuffer: async () => (await read(f, start, end)).buffer as ArrayBuffer }) })
         const name = guessFromName(f.name)
@@ -71,17 +73,24 @@ export async function importAndroid(folder: boolean) {
         additions.push(restoreMobileTrack({ id: `android_${f.id}`, mobileUri: f.uri, mobileCover: cover, mobileLyrics: lyrics,
           filename: f.name, relPath: f.relative, title: meta.title || name.title, artist: meta.artist || name.artist || '未知歌手',
           album: meta.album || '本地音乐', genre: meta.genre, year: meta.year, format: extOf(f.name).toUpperCase(),
-          size: f.size, duration: meta.duration || old?.duration || 0, analyzed: !!meta.duration, addedAt: old?.addedAt || Date.now(), hasLrc: !!lyricFile }))
-      } catch { failed++ }
+          size: f.size, duration: meta.duration || f.duration || old?.duration || 0, analyzed: !!(meta.duration || f.duration), addedAt: old?.addedAt || Date.now(), hasLrc: !!lyricFile }))
+      } catch {
+        failed++
+        if (silent && f.duration && f.duration > 0) {
+          const name = guessFromName(f.name)
+          additions.push(restoreMobileTrack({ id: `android_${f.id}`, mobileUri: f.uri, filename: f.name, relPath: f.relative, title: name.title, artist: name.artist || '未知歌手', album: '下载的音乐', size: f.size, duration: f.duration, analyzed: true, format: extOf(f.name).toUpperCase(), addedAt: Date.now() }))
+        }
+      }
     }
     const byId = new Map(usePlayer.getState().tracks.map(t => [t.id, t]))
     additions.forEach(t => byId.set(t.id, t))
     const tracks = [...byId.values()].sort((a, b) => b.addedAt - a.addedAt)
     usePlayer.setState({ tracks })
     await db.saveTracks(tracks)
-    store.pushToast(additions.length ? `已导入 ${additions.length} 首${failed ? `，${failed} 个文件读取失败` : ''}` : failed ? '文件读取失败，请从手机本地存储重试' : '未找到歌曲，可选择音乐所在文件夹', additions.length ? 'success' : 'error')
-  } catch (error) { store.pushToast((error as Error).message || '导入失败，请重试', 'error') }
-  finally { usePlayer.setState({ scanning: false, scanProgress: null }) }
+    if (!silent) store.pushToast(additions.length ? `已导入 ${additions.length} 首${failed ? `，${failed} 个文件读取失败` : ''}` : failed ? '文件读取失败，请从手机本地存储重试' : '未找到歌曲，可选择音乐所在文件夹', additions.length ? 'success' : 'error')
+    return additions.length
+  } catch (error) { if (!silent) store.pushToast((error as Error).message || '导入失败，请重试', 'error'); return 0 }
+  finally { importing = false; if (!silent) usePlayer.setState({ scanning: false, scanProgress: null }) }
 }
 
 class AndroidEngine {

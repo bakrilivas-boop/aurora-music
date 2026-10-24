@@ -1,4 +1,5 @@
 #requires -Version 7.2
+param([switch]$NativeTestsOnly)
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path -Parent $PSScriptRoot
 Set-Location -LiteralPath $projectRoot
@@ -18,9 +19,17 @@ if ($LASTEXITCODE -ne 0) { throw 'Mobile web build failed.' }
 Copy-Item -LiteralPath (Join-Path $projectRoot 'THIRD_PARTY_NOTICES.md') -Destination 'android\app\src\main\assets\THIRD_PARTY_NOTICES.md'
 Copy-Item -LiteralPath (Join-Path $projectRoot 'LICENSE') -Destination 'android\app\src\main\assets\LICENSE.txt'
 $localGradle = Join-Path $projectRoot '.tools\gradle-runtime\gradle-8.14.3\bin\gradle.bat'
-if (Test-Path -LiteralPath $localGradle) { & $localGradle -p android assembleRelease lintRelease --no-daemon --max-workers=2 --console=plain }
-else { & .\android\gradlew.bat -p android assembleRelease lintRelease --no-daemon --max-workers=2 --console=plain }
+if ($NativeTestsOnly) { $gradleTasks = @(':app:writeNativeTestClasspath') }
+else { $gradleTasks = @('assembleRelease', 'lintRelease') }
+if (Test-Path -LiteralPath $localGradle) { & $localGradle -p android @gradleTasks --no-daemon --max-workers=2 --console=plain }
+else { & .\android\gradlew.bat -p android @gradleTasks --no-daemon --max-workers=2 --console=plain }
 if ($LASTEXITCODE -ne 0) { throw 'Android compile or lint failed.' }
+if ($NativeTestsOnly) {
+    $classpath = [IO.File]::ReadAllText((Join-Path $projectRoot '.tools\native-test-classpath.txt'))
+    & "$env:JAVA_HOME\bin\java.exe" -cp $classpath org.junit.runner.JUnitCore com.aurora.music.DownloadNetworkTest
+    if ($LASTEXITCODE -ne 0) { throw 'Native download tests failed.' }
+    return
+}
 
 $privateDir = Join-Path $projectRoot '.private'
 New-Item -ItemType Directory -Path $privateDir -Force | Out-Null
@@ -37,9 +46,9 @@ try {
         & "$env:JAVA_HOME\bin\keytool.exe" -genkeypair -keystore $keystore -alias aurora-android -storepass:env AURORA_ANDROID_STORE_PASS -keypass:env AURORA_ANDROID_STORE_PASS -keyalg RSA -keysize 3072 -validity 10000 -dname 'CN=Aurora Music, O=Aurora Music' -noprompt
         if ($LASTEXITCODE -ne 0) { throw 'Release signing key creation failed.' }
     }
-    $outputDir = Join-Path $projectRoot 'release\android\1.0.0'
+    $outputDir = Join-Path $projectRoot 'release\android\1.1.0'
     New-Item -ItemType Directory -Path $outputDir -Force | Out-Null
-    $apk = Join-Path $outputDir 'Aurora-Music-Android-1.0.0.apk'
+    $apk = Join-Path $outputDir 'Aurora-Music-Android-1.1.0.apk'
     $aligned = Join-Path $projectRoot 'android\app\build\outputs\apk\release\app-release-aligned.apk'
     $buildTools = Join-Path $env:ANDROID_HOME 'build-tools\36.0.0'
     & "$buildTools\zipalign.exe" -f -p 4 android\app\build\outputs\apk\release\app-release-unsigned.apk $aligned
@@ -51,8 +60,8 @@ try {
     & node scripts/verify-android.mjs $apk
     if ($LASTEXITCODE -ne 0) { throw 'APK contents or manifest verification failed.' }
     $hash = (Get-FileHash -LiteralPath $apk -Algorithm SHA256).Hash.ToLower()
-    [IO.File]::WriteAllText((Join-Path $outputDir 'SHA256.txt'), "$hash  Aurora-Music-Android-1.0.0.apk`n")
-    Copy-Item -LiteralPath $apk -Destination (Join-Path $projectRoot 'Aurora Music-Android-1.0.0-安装包.apk')
+    [IO.File]::WriteAllText((Join-Path $outputDir 'SHA256.txt'), "$hash  Aurora-Music-Android-1.1.0.apk`n")
+    Copy-Item -LiteralPath $apk -Destination (Join-Path $projectRoot 'Aurora Music-Android-1.1.0-安装包.apk')
     Write-Output "Android release: $apk"
     Write-Output "SHA256: $hash"
 } finally { $env:AURORA_ANDROID_STORE_PASS = $null }

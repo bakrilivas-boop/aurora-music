@@ -6,6 +6,8 @@ import { parseLrc, activeLineIndex } from '../lib/lyrics'
 import { Cover, CurrentTime, TotalTime, fmtTime, useEngineFrame } from '../components/common'
 import { IconPlay, IconPause, IconPrev, IconNext, IconShuffle, IconRepeat, IconRepeatOne, IconHeart, IconSearch, IconLibrary, IconDisc, IconSettings, IconQueue, IconLyrics, IconClose, IconFolder, IconPlus, IconMusic, IconArrowDown, IconClock, IconSpark, IconTrash } from '../components/Icons'
 import { importAndroid, isAndroid, restoreMobileTrack } from './native'
+import MobileDownloads from './MobileDownloads'
+import { initializeDownloads, downloadBridge } from './downloads'
 import type { Track } from '../lib/types'
 
 type Tab = 'home' | 'library' | 'favorites' | 'playlists'
@@ -96,6 +98,7 @@ export default function MobileApp() {
   const s = usePlayer()
   const current = useCurrentTrack()
   const [tab, setTab] = useState<Tab>('home')
+  const [downloadsOpen, setDownloadsOpen] = useState(false)
   const [panel, setPanel] = useState<Panel>(null)
   const [selected, setSelected] = useState<Track | null>(null)
   const [playlistId, setPlaylistId] = useState<string | null>(null)
@@ -104,10 +107,11 @@ export default function MobileApp() {
   const [category, setCategory] = useState('全部')
   const input = useRef<HTMLInputElement>(null)
   const scroll = useRef<HTMLElement>(null)
-  useEffect(() => { void s.init().then(() => { usePlayer.setState({ tracks: usePlayer.getState().tracks.map(restoreMobileTrack) }) }) }, [])
+  useEffect(() => { initializeDownloads(); void s.init().then(() => { usePlayer.setState({ tracks: usePlayer.getState().tracks.map(restoreMobileTrack) }) }) }, [])
   useEffect(() => {
     const back = () => {
-      if (panel) setPanel(null)
+      if (downloadsOpen) { setDownloadsOpen(false); void downloadBridge.cancelRead().catch(() => {}) }
+      else if (panel) setPanel(null)
       else if (s.nowPlayingOpen) s.toggleNowPlaying(false)
       else if (playlistId) setPlaylistId(null)
       else if (tab !== 'home') setTab('home')
@@ -115,7 +119,7 @@ export default function MobileApp() {
     }
     window.addEventListener('aurora-back', back)
     return () => window.removeEventListener('aurora-back', back)
-  }, [panel, s.nowPlayingOpen, playlistId, tab])
+  }, [panel, s.nowPlayingOpen, playlistId, tab, downloadsOpen])
   useEffect(() => { scroll.current?.scrollTo(0, 0) }, [tab, playlistId, category])
   const openImport = () => setPanel('import')
   const changeTab = (value: Tab) => { setTab(value); setPlaylistId(null); setSearch(''); setCategory('全部') }
@@ -138,11 +142,12 @@ export default function MobileApp() {
   const title = playlist?.name || ({ home: '聆听', library: '音乐库', favorites: '我喜欢', playlists: '我的歌单' })[tab]
   return <div className={`mobile-app ${s.settings.reducedMotion ? 'reduced-motion' : ''}`} style={{ '--accent': s.settings.accent } as React.CSSProperties}>
     <main ref={scroll} className="m-main">
-      <header className="m-header"><div>{playlistId && <button className="m-icon" aria-label="返回歌单" onClick={() => setPlaylistId(null)}><IconArrowDown style={{ transform: 'rotate(90deg)' }} size={22} /></button>}<span className="m-brand"><IconSpark size={22} /></span><strong>AURORA<span>MUSIC</span></strong></div><button className="m-icon m-settings" aria-label="打开设置" onClick={() => setPanel('settings')}><IconSettings size={23} /></button></header>
+      <header className="m-header"><div>{playlistId && <button className="m-icon" aria-label="返回歌单" onClick={() => setPlaylistId(null)}><IconArrowDown style={{ transform: 'rotate(90deg)' }} size={22} /></button>}<span className="m-brand"><IconSpark size={22} /></span><strong>AURORA<span>MUSIC</span></strong></div><div><button className="m-icon m-settings" aria-label="打开歌单下载" onClick={() => setDownloadsOpen(true)}><IconArrowDown size={23} /></button><button className="m-icon m-settings" aria-label="打开设置" onClick={() => setPanel('settings')}><IconSettings size={23} /></button></div></header>
       {tab === 'home' && !playlist ? <>
         <div className="m-greeting"><span>属于你的声音空间</span><h1>把日常，听成喜欢。</h1></div>
         <section className="m-hero"><div className="m-hero-copy"><span className="m-eyebrow"><i /> 此刻，随心听</span><h2>{current ? current.title : '让这一刻\n有自己的旋律。'}</h2><p>{current ? current.artist : '离线收藏 · 沉浸聆听'}</p><button className="m-pill" onClick={() => s.tracks.length ? s.playQueue(s.tracks.map(t => t.id), 0, true) : openImport()}><IconPlay size={17} />{s.tracks.length ? '随心播放' : '开始收藏'}</button></div><div className="m-hero-art">{s.tracks.length ? <Cover className="m-hero-cover" src={(current || s.tracks[0]).cover} seed={(current || s.tracks[0]).title} iconSize={42} /> : <div className="m-vinyl"><div><IconSpark size={30} /></div></div>}</div></section>
         <div className="m-shortcuts"><button onClick={() => changeTab('favorites')}><span className="m-shortcut-icon"><IconHeart size={22} filled /></span><span><strong>我喜欢</strong><small>{s.favorites.length} 首心动</small></span><span>↗</span></button><button onClick={() => { changeTab('library'); setCategory('最近播放') }}><span className="m-shortcut-icon rose"><IconClock size={22} /></span><span><strong>最近播放</strong><small>重温好旋律</small></span><span>↗</span></button></div>
+        <button className="m-online-entry" onClick={() => setDownloadsOpen(true)}><IconArrowDown size={23} /><span><strong>歌单下载</strong><small>网易云 / QQ 音乐 · 自动加入曲库</small></span><span>↗</span></button>
         <div className="m-section-title"><h2>收藏的声音</h2><button onClick={() => changeTab('library')}>全部音乐 <span>→</span></button></div>
         {s.tracks.length ? <div className="m-album-rail">{albums.slice(0, 10).map(([album, rows]) => <button key={album} onClick={() => { changeTab('library'); setSearch(album) }}><Cover className="m-album-cover" src={rows[0].cover} seed={rows[0].artist + album} iconSize={35} /><strong>{album}</strong><small>{rows[0].artist} · {rows.length} 首</small></button>)}</div> : <div className="m-import-card"><div><IconFolder size={26} /></div><span><strong>从你的音乐开始</strong><small>选择文件夹，封面和歌词一起带上。</small></span><button className="m-icon" aria-label="添加本地音乐" onClick={openImport}><IconPlus size={22} /></button></div>}
         <div className="m-section-title"><h2>最近加入</h2><span className="m-muted">{s.tracks.length} 首本地音乐</span></div>
@@ -164,12 +169,13 @@ export default function MobileApp() {
     {s.nowPlayingOpen && <FullPlayer close={() => s.toggleNowPlaying(false)} queue={() => setPanel('queue')} more={trackMenu} />}
     {panel && <Sheet title={({ import: '把音乐带进来', settings: '设置', queue: `播放队列 · ${s.queue.length}`, newPlaylist: '创建歌单', addPlaylist: '加入歌单', track: '歌曲选项' })[panel]} close={() => setPanel(null)}>
       {panel === 'import' && <><p className="m-sheet-description">选择手机上的音乐文件夹，自动读取内嵌封面和同名歌词。导入后可离线播放，重启应用也会保留。</p><button className="m-option" onClick={() => { setPanel(null); isAndroid ? void importAndroid(true) : input.current?.click() }}><IconFolder size={24} /><span><strong>导入整个文件夹</strong><small>歌曲、封面和 LRC 歌词一起导入</small></span><span>→</span></button><button className="m-option" onClick={() => { setPanel(null); isAndroid ? void importAndroid(false) : input.current?.click() }}><IconMusic size={24} /><span><strong>选择音乐文件</strong><small>可以一次选择多首歌曲</small></span><span>→</span></button><p className="m-footnote">歌曲保存在应用内，卸载应用会一并移除。原始文件不会改动。</p></>}
-      {panel === 'settings' && <><div className="m-about"><span className="m-brand"><IconSpark size={32} /></span><h3>Aurora Music</h3><p>Android · 1.0.0</p></div><label className="m-setting-volume">播放音量 <strong>{Math.round(s.settings.volume * 100)}%</strong><input aria-label="播放音量" type="range" min="0" max="100" value={Math.round(s.settings.volume * 100)} onChange={e => s.setVolume(Number(e.target.value) / 100)} /></label><div className="m-setting-line"><span>主题色</span><div className="m-colors">{['#a291ff', '#84cbbb', '#e8a5b6', '#d6b984'].map(color => <button key={color} style={{ background: color }} aria-label={`主题色 ${color}`} aria-pressed={s.settings.accent === color} onClick={() => s.updateSettings({ accent: color })}>{s.settings.accent === color ? '✓' : ''}</button>)}</div></div><label className="m-setting-line"><span>减少动态效果<small>使用更轻柔的界面过渡</small></span><input type="checkbox" role="switch" checked={s.settings.reducedMotion} onChange={e => s.updateSettings({ reducedMotion: e.target.checked })} /></label><button className="m-option" onClick={openImport}><IconPlus size={22} /><span>导入本地音乐</span><span>→</span></button><p className="m-footnote">本地音乐、喜欢、歌单和设置保存在这台手机上。系统通知和耳机按键可以控制播放。此安卓版本暂未接入桌面版的在线下载与 DeepSeek。</p><a className="m-source" href="https://github.com/bakrilivas-boop/aurora-music" target="_blank" rel="noreferrer">开源项目与第三方说明 ↗</a></>}
+      {panel === 'settings' && <><div className="m-about"><span className="m-brand"><IconSpark size={32} /></span><h3>Aurora Music</h3><p>Android · 1.1.0</p></div><label className="m-setting-volume">播放音量 <strong>{Math.round(s.settings.volume * 100)}%</strong><input aria-label="播放音量" type="range" min="0" max="100" value={Math.round(s.settings.volume * 100)} onChange={e => s.setVolume(Number(e.target.value) / 100)} /></label><div className="m-setting-line"><span>主题色</span><div className="m-colors">{['#a291ff', '#84cbbb', '#e8a5b6', '#d6b984'].map(color => <button key={color} style={{ background: color }} aria-label={`主题色 ${color}`} aria-pressed={s.settings.accent === color} onClick={() => s.updateSettings({ accent: color })}>{s.settings.accent === color ? '✓' : ''}</button>)}</div></div><label className="m-setting-line"><span>减少动态效果<small>使用更轻柔的界面过渡</small></span><input type="checkbox" role="switch" checked={s.settings.reducedMotion} onChange={e => s.updateSettings({ reducedMotion: e.target.checked })} /></label><button className="m-option" onClick={openImport}><IconPlus size={22} /><span>导入本地音乐</span><span>→</span></button><p className="m-footnote">本地音乐、喜欢、歌单和设置保存在这台手机上。系统通知和耳机按键可以控制播放。歌单下载支持网易云和 QQ 音乐；DeepSeek 尚未移植到安卓。</p><a className="m-source" href="https://github.com/bakrilivas-boop/aurora-music" target="_blank" rel="noreferrer">开源项目与第三方说明 ↗</a></>}
       {panel === 'queue' && <>{s.queue.map(id => s.tracks.find(t => t.id === id)).filter((t): t is Track => !!t).map(track => <TrackRow menu={trackMenu} key={track.id} track={track} ids={s.queue} remove={() => s.removeFromQueue(track.id)} />)}{!s.queue.length && <Empty text="队列还空着" detail="点一首喜欢的歌，开始播放。" action={false} />}</>}
       {panel === 'newPlaylist' && <form onSubmit={e => { e.preventDefault(); if (!name.trim()) return; const id = s.createPlaylist(name.trim()); if (selected) s.addToPlaylist(id, selected.id); setSelected(null); setPanel(null); changeTab('playlists'); setPlaylistId(id) }}><label className="m-form-label">歌单名称<input autoFocus aria-label="歌单名称" maxLength={60} placeholder="例如：今晚的晚风" value={name} onChange={e => setName(e.target.value)} /></label><button className="m-primary m-wide" disabled={!name.trim()} type="submit">创建歌单</button></form>}
       {panel === 'addPlaylist' && <>{s.playlists.map(p => <button key={p.id} className="m-option" onClick={() => { if (selected) s.addToPlaylist(p.id, selected.id); s.pushToast(`已加入「${p.name}」`, 'success'); setPanel(null) }}><IconQueue size={22} /><span>{p.name}</span><span><IconPlus size={18} /></span></button>)}<button className="m-option" onClick={() => { setName(''); setPanel('newPlaylist') }}><IconPlus size={22} /><span>新建歌单</span></button></>}
       {panel === 'track' && selected && <><div className="m-selected-track"><Cover className="m-row-cover" src={selected.cover} seed={selected.title} iconSize={22} /><div><strong>{selected.title}</strong><small>{selected.artist} · {selected.album}</small></div></div><button className="m-option" onClick={() => { s.toggleFavorite(selected.id); setPanel(null) }}><IconHeart size={22} filled={s.favorites.includes(selected.id)} /><span>{s.favorites.includes(selected.id) ? '取消喜欢' : '加入我喜欢'}</span></button><button className="m-option" onClick={() => setPanel('addPlaylist')}><IconPlus size={22} /><span>加入歌单</span></button><button className="m-option" onClick={() => { s.addToQueue(selected.id); setPanel(null) }}><IconQueue size={22} /><span>加入播放队列</span></button>{playlist && <button className="m-option" onClick={() => { s.removeFromPlaylist(playlist.id, selected.id); setPanel(null) }}><IconTrash size={22} /><span>从这张歌单移除</span></button>}<p className="m-footnote">{selected.format} · {fmtTime(selected.duration)} · {(selected.size / 1024 / 1024).toFixed(1)} MB</p></>}
     </Sheet>}
+    {downloadsOpen && <MobileDownloads close={() => { setDownloadsOpen(false); void downloadBridge.cancelRead().catch(() => {}) }} library={() => { setDownloadsOpen(false); changeTab('library') }} />}
     {s.scanning && <div className="m-import-progress" role="status"><span className="m-spinner" /><div><strong>{s.scanProgress?.phase === 'parse' ? '正在读取封面与歌词' : '正在导入音乐'}</strong><small>{s.scanProgress?.total ? `${s.scanProgress.done} / ${s.scanProgress.total}` : '从所选位置保存歌曲，请稍候…'}</small></div></div>}
     <div className="m-toasts" aria-live="polite">{s.toasts.map(toast => <div role="status" key={toast.id} className={toast.kind}>{toast.text}</div>)}</div>
     <input ref={input} hidden type="file" multiple accept="audio/*,.lrc,.txt,image/*" onChange={e => { if (e.currentTarget.files?.length) void s.importFromInput(e.currentTarget) }} />

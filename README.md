@@ -4,7 +4,7 @@
 
 面向 Windows 的本地音乐播放器，使用 **Electron + React + TypeScript** 构建，同时保留浏览器版。支持本地曲库、同步歌词、封面补全、歌单管理与 DeepSeek 音乐助手。
 
-[下载 Windows 版](https://github.com/bakrilivas-boop/aurora-music/releases/tag/v1.6.0) · [Android 预览版](https://github.com/bakrilivas-boop/aurora-music/releases/tag/android-v1.0.0) · [提交问题](https://github.com/bakrilivas-boop/aurora-music/issues) · [MIT License](LICENSE)
+[下载 Windows 版](https://github.com/bakrilivas-boop/aurora-music/releases/tag/v1.6.0) · [Android 预览版](https://github.com/bakrilivas-boop/aurora-music/releases/tag/android-v1.1.0) · [提交问题](https://github.com/bakrilivas-boop/aurora-music/issues) · [MIT License](LICENSE)
 
 ![Aurora Music 1.6 界面预览](docs/images/ui-1.6.png)
 
@@ -42,9 +42,13 @@
 
 安卓端有独立的触屏界面：深色首页、底部导航、迷你播放器、全屏大封面、同步歌词、滑动切歌、音乐库搜索、喜欢与本地歌单。通过系统文件选择器导入音乐文件或整个文件夹，读取内嵌封面、同名 LRC、同目录封面。歌曲保存在应用私有目录，重启后恢复；卸载会移除应用内的歌曲，原始文件保持不变。
 
-播放使用 AndroidX Media3 系统媒体服务，队列、循环和后台切歌由原生层处理。音量、主题色和减少动态效果设置自动保存。安卓预览版支持 Android 7.0 / API 24 及更新系统；不含桌面版的 DeepSeek、在线资料补全、歌单下载、均衡器与频谱。APK 不包含个人音乐或 API Key。
+播放使用 AndroidX Media3 系统媒体服务，队列、循环和后台切歌由原生层处理。音量、主题色和减少动态效果设置自动保存。安卓预览版支持 Android 7.0 / API 24 及更新系统；不含桌面版的 DeepSeek、在线资料补全、均衡器与频谱。APK 不包含个人音乐或 API Key。
 
-安装：下载 `Aurora-Music-Android-1.0.0.apk` 到手机，允许当前文件管理器安装此来源的应用，再打开 APK。首次进入点击添加按钮导入本地音乐。手机厂商的省电策略和实际蓝牙设备兼容性尚未完成真机验证。
+安卓 1.1 新增「歌单下载」：从首页下载按钮粘贴网易云或 QQ 音乐公开歌单链接，补齐曲目资料后选择下载。原生后台任务同时处理两首歌曲，支持进度、取消、失败重试和备用解析接口设置。完成的文件会自动合并入曲库，保留已有歌曲、收藏和歌单；重启应用恢复任务和下载文件。保存位置是应用私有音乐目录，卸载会删除这些副本。
+
+歌单和音源可用性取决于第三方平台及解析接口；单次最多读取 1000 首、10 次请求，文件最大 200 MiB，试听片段或时长不匹配会被拒绝。系统强制停止、后台时间限制或网络中断可能打断任务，重新打开应用后可恢复或重试。
+
+安装：下载 `Aurora-Music-Android-1.1.0.apk` 到手机，允许当前文件管理器安装此来源的应用，再打开 APK。首次进入点击添加按钮导入本地音乐。手机厂商的省电策略和实际蓝牙设备兼容性尚未完成真机验证。
 
 安卓开发需要 Node.js 22+、JDK 21、Android SDK platform 36 与 build-tools 36.0.0：
 
@@ -53,6 +57,8 @@ npm ci
 npm run dev:android
 # 生成前端并同步安卓工程
 npm run sync:android
+# 安卓原生解析规则测试（需要 SDK / JDK）
+npm run test:android:native
 # 构建、lint、生成本机发布签名并校验 APK
 pwsh -File scripts/build-android.ps1
 ```

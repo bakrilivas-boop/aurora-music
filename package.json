@@ -19,9 +19,10 @@
     "dev:android": "vite --config vite.mobile.config.ts --open /mobile.html",
     "build:android:web": "vite build --config vite.mobile.config.ts && node scripts/mobile-entry.mjs",
     "sync:android": "npm run build:android:web && cap sync android",
-    "test:android": "node scripts/mobile-regression.mjs",
+    "test:android": "node scripts/mobile-regression.mjs && node scripts/mobile-download-regression.mjs",
     "dist:android": "pwsh -File scripts/build-android.ps1",
-    "verify:android": "node scripts/verify-android.mjs"
+    "verify:android": "node scripts/verify-android.mjs",
+    "test:android:native": "pwsh -File scripts/build-android.ps1 -NativeTestsOnly"
   },
   "build": {
     "appId": "com.aurora.music",

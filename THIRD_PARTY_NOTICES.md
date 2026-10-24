@@ -30,3 +30,5 @@ Public API implementation references are identified in the corresponding source 
 - `electron/playlist-sources.cjs`: NeteaseCloudMusicApiEnhanced/api-enhanced and chongya369/qqmusic-api-py, for playlist metadata, pagination and endpoint behavior.
 
 DeepSeek and music platforms are external services, not bundled dependencies. Service access and availability are governed by the respective providers. This repository does not include their credentials, music, lyrics or album artwork. Aurora Music is an independent project and is not an official client of these services.
+
+Android playlist/API behavior in `DownloadNetwork.java` follows the same contracts and references as `electron/playlist-sources.cjs` and `electron/music-mirror.cjs`; no platform credentials or media are included. The native download service uses Android foreground data-sync services.
